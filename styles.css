@@ -1,0 +1,40 @@
+div.isLoading{
+ display: none;
+}
+div#isLoaded{
+    display: none ;
+}
+div#isLoaded.enabled{
+    display: block ;
+}
+div#div#isLoaded{
+    display: none ;
+}
+div#unauthorised{
+    display: none ;
+}
+div#unauthorised.enabled{
+    display: block ;
+}
+div#root.disabled{
+    display: none ;
+}
+div#applicationUnstarted{
+    display: none ;
+}
+
+div#applicationUnstarted.enabled{
+    display: block ;
+}
+div#applicationUnstarted.disabled{
+    display: none ;
+}
+
+
+div#applicationClosed{
+    display: none ;
+}
+
+div#applicationClosed.enabled{
+    display: block ;
+}

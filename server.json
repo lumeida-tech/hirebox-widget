@@ -1,0 +1,19 @@
+{
+    "hire.cgl.com": {
+        "authorized":true,
+        "started":false, 
+        "closed":true
+    },
+
+    "hire.jfo.com": {
+        "authorized":true,
+        "started":true, 
+        "closed":true
+    },
+
+    "hire.mm.com": {
+        "authorized":true,
+        "started":true, 
+        "closed":true
+    }
+}
