@@ -38,3 +38,145 @@ div#applicationClosed{
 div#applicationClosed.enabled{
     display: block ;
 }
+/* ─── Upload CV ─────────────────────────── */
+
+#upload-section {
+  max-width: 480px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #ffffff;
+  border: 0.5px solid rgba(0,0,0,0.15);
+  border-radius: 12px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.card-sub {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 1.5rem;
+}
+
+#dropZone {
+  border: 1px dashed #888;
+  border-radius: 12px;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+#dropZone:hover {
+  background: #f5f5f5;
+}
+
+#dropZone.dragover {
+  background: #E6F1FB;
+  border-color: #378ADD;
+}
+
+.drop-text {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.drop-hint {
+  font-size: 12px;
+  color: #aaa;
+}
+
+#browseBtn {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #185FA5;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+#filePreview {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 1rem;
+}
+
+#filePreview.visible {
+  display: flex;
+}
+
+#fileName {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+#fileSize {
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 2px;
+}
+
+#removeBtn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #aaa;
+}
+
+#removeBtn:hover {
+  color: #333;
+}
+
+#errorMsg {
+  display: none;
+  font-size: 12px;
+  color: #E24B4A;
+  margin-top: 8px;
+}
+
+#errorMsg.visible {
+  display: block;
+}
+
+#submitBtn {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  background: #185FA5;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+#submitBtn.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+#submitBtn.active:hover {
+  background: #0C447C;
+}
+
+#successMsg {
+  display: none;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+#successMsg.visible {
+  display: block;
+}
