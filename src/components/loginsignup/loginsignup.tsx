@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 // Importez vos composants UI (Shadcn UI ou équivalent) ici
 
 export function CardDemo() {
@@ -23,15 +23,15 @@ export function CardDemo() {
   return (
     <Card className="w-full max-w-sm mx-auto my-8">
       <CardHeader>
-        <CardTitle>{isSignUp ? "Create an account" : "Login"}</CardTitle>
+        <CardTitle>{isSignUp ? "Créer un compte" : "Login"}</CardTitle>
         <CardDescription>
           {isSignUp 
-            ? "Fill in the details to register your company" 
-            : "Enter your credentials to access your account"}
+            ? "Saissisez les informations de votre compagnie" 
+            : "Entrez vos identifiants pour vous connecter"}
         </CardDescription>
         <CardAction>
           <Button variant="link" onClick={toggleMode}>
-            {isSignUp ? "Already have an account? Login" : "Don't have an account? Sign Up"}
+            {isSignUp ? "Se connecter" : "S'inscrire"}
           </Button>
         </CardAction>
       </CardHeader>
@@ -44,11 +44,11 @@ export function CardDemo() {
             {isSignUp && (
               <>
                 <div className="grid gap-2">
-                  <Label htmlFor="company">Company Name</Label>
-                  <Input id="company" type="text" placeholder="Acme Inc." required />
+                  <Label htmlFor="company">Nom de la compagnie</Label>
+                  <Input id="company" type="text" placeholder="Hirebox" required />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="website">Website Domain</Label>
+                  <Label htmlFor="website">Adresse web</Label>
                   <Input id="website" type="text" placeholder="www.example.com" required />
                 </div>
               </>
@@ -56,15 +56,15 @@ export function CardDemo() {
 
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="name@company.com" required />
+              <Input id="email" type="email" placeholder="compagnie@exemple.com" required />
             </div>
 
             <div className="grid gap-2">
               <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Mot de passe</Label>
                 {!isSignUp && (
                   <a href="#" className="ml-auto inline-block text-sm underline-offset-4 hover:underline">
-                    Forgot your password?
+                    Mot de passe oublié?
                   </a>
                 )}
               </div>
@@ -76,7 +76,7 @@ export function CardDemo() {
 
       <CardFooter>
         <Button type="submit" className="w-full">
-          {isSignUp ? "Register" : "Login"}
+          {isSignUp ? "S'inscrire" : "Se connecter"}
         </Button>
       </CardFooter>
     </Card>

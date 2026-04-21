@@ -1,25 +1,11 @@
 import * as React from "react"
 import {
-  IconCamera,
-  IconChartBar,
   IconDashboard,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
-  IconFileWord,
-  IconFolder,
-  IconHelp,
   IconInnerShadowTop,
-  IconListDetails,
-  IconReport,
-  IconSearch,
-  IconSettings,
   IconUsers,
+  IconBriefcase,
+  IconCirclePlus,
 } from "@tabler/icons-react"
-
-import { NavDocuments } from "#/components/nav-documents"
-import { NavMain } from "#/components/nav-main"
-import { NavSecondary } from "#/components/nav-secondary"
 import { NavUser } from "#/components/nav-user"
 import {
   Sidebar,
@@ -30,125 +16,21 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "#/components/ui/sidebar"
+import { CreateRecruitmentDialog } from "#/components/create-recruitment-dialog"
+import type { ActiveView } from "#/routes/dashboard-test"
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: IconDashboard,
-    },
-    {
-      title: "Lifecycle",
-      url: "#",
-      icon: IconListDetails,
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: IconChartBar,
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: IconFolder,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: IconUsers,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: IconSettings,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: IconHelp,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: IconSearch,
-    },
-  ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: IconDatabase,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: IconReport,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: IconFileWord,
-    },
-  ],
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  activeView: ActiveView
+  onNavigate: (view: ActiveView) => void
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+const user = {
+  name: "Nom de la compagnie",
+  email: "email@exemple.com",
+  avatar: "/avatars/shadcn.jpg",
+}
+
+export function AppSidebar({ activeView, onNavigate, ...props }: AppSidebarProps) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -160,19 +42,67 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="#">
                 <IconInnerShadowTop className="size-5!" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">HireBox.</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <SidebarMenu>
+
+          {/* Dashboard */}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              isActive={activeView === 'dashboard'}
+              onClick={() => onNavigate('dashboard')}
+              className="cursor-pointer"
+            >
+              <IconDashboard className="size-4" />
+              <span>Dashboard</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          {/* Candidats */}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              isActive={activeView === 'candidates'}
+              onClick={() => onNavigate('candidates')}
+              className="cursor-pointer"
+            >
+              <IconUsers className="size-4" />
+              <span>Candidats</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          {/* Recrutements */}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              isActive={activeView === 'recruitments'}
+              onClick={() => onNavigate('recruitments')}
+              className="cursor-pointer"
+            >
+              <IconBriefcase className="size-4" />
+              <span>Recrutements</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          {/* Créer un recrutement */}
+          <SidebarMenuItem>
+            <CreateRecruitmentDialog>
+              <SidebarMenuButton className="cursor-pointer text-primary">
+                <IconCirclePlus className="size-4" />
+                <span>Créer un recrutement</span>
+              </SidebarMenuButton>
+            </CreateRecruitmentDialog>
+          </SidebarMenuItem>
+
+        </SidebarMenu>
       </SidebarContent>
+
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   )
