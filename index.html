@@ -1,72 +1,244 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>HireBox</title>
     <link rel="stylesheet" href="styles.css">
     <script src="script.js" defer></script>
 </head>
-
+<style>
+    /* Tes nouveaux styles "Tech" pour l'historique ici */
+    .history-section {
+        margin-top: 20px;
+        padding: 15px;
+        background: rgba(30, 41, 59, 0.4);
+        border-radius: 10px;
+        border: 1px solid #3b82f6;
+    }
+    .archive-item {
+        margin-bottom: 15px;
+        padding: 10px;
+        border-left: 3px solid #60a5fa;
+    }
+</style>
 <body>
-    <div id="root">
-        <h1>HireBox</h1>
-
-        <div id="upload-section">
-            <p class="card-title">Déposer votre CV</p>
-            <p class="card-sub">Formats acceptés : PDF uniquement · Taille max : 5 Mo</p>
-
-            <div id="dropZone">
-                <p class="drop-text">Glissez-déposez votre CV ici</p>
-                <p class="drop-hint">ou</p>
-                <span id="browseBtn">Parcourir vos fichiers</span>
-                <input type="file" id="fileInput" accept=".pdf" style="display:none;">
-            </div>
-
-            <div id="filePreview">
-                <div class="file-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="1.5" stroke-linecap="round"
-                        stroke-linejoin="round" width="16" height="16">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                        <polyline points="14 2 14 8 20 8" />
-                    </svg>
-                </div>
-                <div>
-                    <div id="fileName">—</div>
-                    <div id="fileSize">—</div>
-                </div>
-                <button id="removeBtn">✕</button>
-            </div>
-
-            <div id="errorMsg">Ce fichier n'est pas accepté. Veuillez uploader un PDF de moins de 5 Mo.</div>
-
-            <button id="submitBtn">Envoyer mon CV</button>
-        </div>
-
-        <div id="successMsg">
-            <p>CV envoyé avec succès !</p>
-            <p>Votre candidature est en cours de traitement. Vous serez contacté prochainement.</p>
-        </div>
-
-    </div>
 
     <div id="isLoaded">
-        <p>En cours de téléchargment</p>
+        <p>En cours de téléchargement...</p> 
     </div>
 
     <div id="unauthorised">
-        <p>Vous etes pas autorisé</p>
+        <p>Vous n'êtes pas autorisé</p> //
     </div>
 
     <div id="applicationUnstarted">
-        <p>Candidature n'a pas encore demarré </p>
+        <p>La candidature n'a pas encore démarré</p>
     </div>
 
     <div id="applicationClosed">
-        <p>Candidature a expiré </p>
+        <p>La candidature a expiré</p>
+    </div>
+
+    <div id="root">
+        <div class="page">
+            <h1 class="logo">HireBox</h1>
+
+            <!-- ÉTAPES -->
+            <div class="steps">
+                <div class="step-item" id="step1">
+                    <div class="step-circle">1</div>
+                    <span>Upload CV</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item" id="step2">
+                    <div class="step-circle">2</div>
+                    <span>Questions</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item" id="step3">
+                    <div class="step-circle">3</div>
+                    <span>Soumission</span>
+                </div>
+            </div>
+
+            <!-- ─── PHASE 1 : UPLOAD CV ─── -->
+            <div id="upload-section">
+                <div class="card">
+                    <p class="card-title">Déposer votre CV</p>
+                    <p class="card-sub">Formats acceptés : PDF uniquement · Taille max : 5 Mo</p>
+
+                    <div id="dropZone">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="40" height="40" style="margin-bottom:12px;">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <p class="drop-text">Glissez-déposez votre CV ici</p>
+                        <p class="drop-hint">ou</p>
+                        <span id="browseBtn">Parcourir vos fichiers</span>
+                        <input type="file" id="fileInput" accept=".pdf" style="display:none;">
+                    </div>
+
+                    <div id="filePreview">
+                        <div class="file-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div id="fileName">—</div>
+                            <div id="fileSize">—</div>
+                        </div>
+                        <button id="removeBtn">✕</button>
+                    </div>
+
+                    <div id="errorMsg">Ce fichier n'est pas accepté. Veuillez uploader un PDF de moins de 5 Mo.</div>
+                    <button id="submitCvBtn">Envoyer mon CV</button>
+                </div>
+            </div>
+
+            <!-- ─── PHASE 2 : INTERVIEW ─── -->
+            <div id="interview-section" style="display:none;">
+
+                <div class="attempts">
+                    <div class="attempt-dot active" id="dot0"></div>
+                    <div class="attempt-dot" id="dot1"></div>
+                    <div class="attempt-dot" id="dot2"></div>
+                    <span class="attempt-label" id="attemptLabel">Tentative 1 sur 3</span> 
+                </div>
+
+                <div class="expire-banner" id="expireBanner"></div>
+
+                <div class="card">
+                    <div class="section-label">Question du recruteur</div>
+                    <p class="question-text" id="questionText"></p>
+
+                    <div class="audio-bar">
+                        <button class="play-btn" id="playBtn">
+                            <svg viewBox="0 0 24 24" fill="white" width="14" height="14"><polygon points="5,3 19,12 5,21"/></svg>
+                        </button>
+                        <div class="audio-track"><div class="audio-progress" id="audioProgress"></div></div> 
+                        <span class="audio-time-label"></span> 
+                    </div>
+                </div>
+
+                <div class="reading-timer" id="readingTimer">
+                    <div>
+                        <div class="reading-left">Temps pour commencer à répondre</div>
+                        <div class="reading-bar"><div class="reading-fill" id="readingFill"></div></div>
+                    </div>
+                    <div class="reading-timer-right">
+                        <div class="reading-count" id="readingCount">30</div>
+                        <button class="ready-btn" id="readyBtn">Je suis prêt</button>
+                    </div>
+                </div>
+
+                <div class="response-timer" id="responseTimer">
+                    <div>
+                        <span class="timer-left-label">Temps restant pour répondre</span>
+                        <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+                    </div>
+                    <div class="timer-display" id="timerDisplay">0:30</div>
+                </div>
+
+                <div class="card mic-card">
+                    <div class="section-label">Votre réponse orale</div>
+                    <div class="mic-outer disabled" id="micOuter">
+                        <div class="mic-inner">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2" width="24" height="24">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                <line x1="12" y1="19" x2="12" y2="23"/>
+                                <line x1="8" y1="23" x2="16" y2="23"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="wave">
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                    </div>
+                    <div class="mic-title" id="micTitle">Écoutez la question d'abord</div>
+                    <div class="mic-sub" id="micSub">Le micro s'activera dans 30 secondes maximum</div>
+                    <button class="submit-btn" id="submitBtn">Soumettre ma réponse</button>
+                </div>
+
+                <!-- Réécoute réponse interview -->
+                <div class="card" id="replayCard" style="display:none;">
+                    <div class="section-label">Réécouter votre réponse avant de soumettre</div>
+                    <audio id="replayAudio" controls style="width:100%; margin-top:6px;"></audio>
+                </div>
+            </div>
+
+            <!-- ─── PHASE 2b : PRÉSENTATION ─── -->
+            <div id="presentation-section" style="display:none;">
+
+                <div class="card">
+                    <div class="section-label">Question de présentation</div>
+                    <p class="question-text" id="questionTextPresentation">Pouvez-vous vous présenter ?</p>
+                    <div class="audio-bar">
+                        <button class="play-btn" id="playBtnPresentation">
+                            <svg viewBox="0 0 24 24" fill="white" width="14" height="14"><polygon points="5,3 19,12 5,21"/></svg>
+                        </button>
+                        <div class="audio-track"><div class="audio-progress" id="audioProgressPresentation"></div></div>
+                        <span class="audio-time-label"></span>
+                    </div>
+                </div>
+
+                <!-- Réécoute réponse présentation -->
+                <div class="card" id="replayCardPresentation" style="display:none;">
+                    <div class="section-label">Réécouter votre présentation avant de soumettre</div>
+                    <audio id="replayAudioPresentation" controls style="width:100%; margin-top:6px;"></audio>
+                </div>
+
+                <!-- Le chrono 30s est injecté dynamiquement par le JS ici -->
+
+                <div class="response-timer" id="responseTimerPresentation">
+                    <div>
+                        <span class="timer-left-label">Temps restant pour répondre</span>
+                        <div class="timer-bar"><div class="timer-fill" id="timerFillPresentation"></div></div>
+                    </div>
+                    <div class="timer-display" id="timerDisplayPresentation">1:30</div>
+                </div>
+
+                <div class="card mic-card">
+                    <div class="section-label">Votre réponse orale</div>
+                    <div class="mic-outer disabled" id="micOuterPresentation">
+                        <div class="mic-inner">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2" width="24" height="24">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                <line x1="12" y1="19" x2="12" y2="23"/>
+                                <line x1="8" y1="23" x2="16" y2="23"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="wave" id="wavePresentation">
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                    </div>
+                    <div class="mic-title" id="micTitlePresentation">Écoutez la question d'abord</div>
+                    <div class="mic-sub" id="micSubPresentation">Le micro s'activera dans 30 secondes maximum</div>
+                    <button class="submit-btn" id="submitBtnPresentation">Soumettre ma présentation</button>
+                </div>
+            </div>
+
+            <!-- ─── PHASE 3 : RÉSULTAT ─── -->
+            <div class="result-card" id="resultCard">
+                <div class="result-icon" id="resultIcon"></div>
+                <p class="result-title" id="resultTitle"></p>
+                <p class="result-sub" id="resultSub"></p>
+            </div>
+
+        </div>
     </div>
 
 </body>
-
 </html>

@@ -1,182 +1,709 @@
-div.isLoading{
- display: none;
+/* ─── ÉTATS GLOBAUX ─────────────────────── */
+
+div#isLoaded {
+    display: none;
 }
-div#isLoaded{
-    display: none ;
+div#isLoaded.enabled {
+    display: block;
 }
-div#isLoaded.enabled{
-    display: block ;
+div#unauthorised {
+    display: none;
 }
-div#div#isLoaded{
-    display: none ;
+div#unauthorised.enabled {
+    display: block;
 }
-div#unauthorised{
-    display: none ;
+div#root.disabled {
+    display: none;
 }
-div#unauthorised.enabled{
-    display: block ;
+div#applicationUnstarted {
+    display: none;
 }
-div#root.disabled{
-    display: none ;
+div#applicationUnstarted.enabled {
+    display: block;
 }
-div#applicationUnstarted{
-    display: none ;
+div#applicationUnstarted.disabled {
+    display: none;
+}
+div#applicationClosed {
+    display: none;
+}
+div#applicationClosed.enabled {
+    display: block;
 }
 
-div#applicationUnstarted.enabled{
-    display: block ;
-}
-div#applicationUnstarted.disabled{
-    display: none ;
-}
+/* ─── BASE ───────────────────────────────── */
 
-
-div#applicationClosed{
-    display: none ;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-div#applicationClosed.enabled{
-    display: block ;
+body {
+    font-family: system-ui, sans-serif;
+    background: #f5f5f3;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem;
 }
-/* ─── Upload CV ─────────────────────────── */
 
-#upload-section {
-  max-width: 480px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background: #ffffff;
-  border: 0.5px solid rgba(0,0,0,0.15);
-  border-radius: 12px;
+.page {
+    width: 100%;
+    max-width: 560px;
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: 500;
+    color: #111;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+/* ─── ÉTAPES ─────────────────────────────── */
+
+.steps {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.step-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #aaa;
+}
+
+.step-item.active {
+    color: #185FA5;
+}
+
+.step-item.done {
+    color: #3B6D11;
+}
+
+.step-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 0.5px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 500;
+    background: #fff;
+    color: #aaa;
+}
+
+.step-item.active .step-circle {
+    background: #E6F1FB;
+    border-color: #378ADD;
+    color: #185FA5;
+}
+
+.step-item.done .step-circle {
+    background: #EAF3DE;
+    border-color: #639922;
+    color: #3B6D11;
+}
+
+.step-line {
+    flex: 1;
+    height: 0.5px;
+    background: #ddd;
+    margin: 0 6px;
+}
+
+/* ─── CARTE ──────────────────────────────── */
+
+.card {
+    background: #fff;
+    border: 0.5px solid rgba(0,0,0,0.12);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .card-title {
-  font-size: 18px;
-  font-weight: 500;
-  margin-bottom: 6px;
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: #111;
 }
 
 .card-sub {
-  font-size: 13px;
-  color: #888;
-  margin-bottom: 1.5rem;
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 1.5rem;
 }
 
+.section-label {
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 8px;
+}
+
+/* ─── UPLOAD CV ──────────────────────────── */
+
 #dropZone {
-  border: 1px dashed #888;
-  border-radius: 12px;
-  padding: 2.5rem 1rem;
-  text-align: center;
-  cursor: pointer;
+    border: 1px dashed #aaa;
+    border-radius: 12px;
+    padding: 2.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
 }
 
 #dropZone:hover {
-  background: #f5f5f5;
+    background: #f5f5f3;
 }
 
 #dropZone.dragover {
-  background: #E6F1FB;
-  border-color: #378ADD;
+    background: #E6F1FB;
+    border-color: #378ADD;
 }
 
 .drop-text {
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: #111;
 }
 
 .drop-hint {
-  font-size: 12px;
-  color: #aaa;
+    font-size: 12px;
+    color: #aaa;
 }
 
 #browseBtn {
-  display: inline-block;
-  margin-top: 10px;
-  font-size: 13px;
-  color: #185FA5;
-  cursor: pointer;
-  text-decoration: underline;
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 13px;
+    color: #185FA5;
+    cursor: pointer;
+    text-decoration: underline;
 }
 
 #filePreview {
-  display: none;
-  align-items: center;
-  gap: 12px;
-  background: #f5f5f5;
-  border-radius: 8px;
-  padding: 12px 14px;
-  margin-top: 1rem;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    background: #f5f5f3;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-top: 1rem;
 }
 
 #filePreview.visible {
-  display: flex;
+    display: flex;
+}
+
+.file-icon {
+    width: 32px;
+    height: 32px;
+    background: #E6F1FB;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 #fileName {
-  font-size: 13px;
-  font-weight: 500;
+    font-size: 13px;
+    font-weight: 500;
+    color: #111;
 }
 
 #fileSize {
-  font-size: 11px;
-  color: #aaa;
-  margin-top: 2px;
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 2px;
 }
 
 #removeBtn {
-  margin-left: auto;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  color: #aaa;
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #aaa;
 }
 
 #removeBtn:hover {
-  color: #333;
+    color: #333;
 }
 
 #errorMsg {
-  display: none;
-  font-size: 12px;
-  color: #E24B4A;
-  margin-top: 8px;
+    display: none;
+    font-size: 12px;
+    color: #E24B4A;
+    margin-top: 8px;
 }
 
 #errorMsg.visible {
-  display: block;
+    display: block;
 }
 
-#submitBtn {
-  width: 100%;
-  margin-top: 1.5rem;
-  padding: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  background: #185FA5;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  opacity: 0.4;
-  pointer-events: none;
+#submitCvBtn {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    background: #185FA5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    opacity: 0.4;
+    pointer-events: none;
 }
 
-#submitBtn.active {
-  opacity: 1;
-  pointer-events: all;
+#submitCvBtn.active {
+    opacity: 1;
+    pointer-events: all;
 }
 
-#submitBtn.active:hover {
-  background: #0C447C;
+#submitCvBtn.active:hover {
+    background: #0C447C;
 }
 
-#successMsg {
-  display: none;
-  text-align: center;
-  padding: 2rem 0;
+/* ─── TENTATIVES ─────────────────────────── */
+
+.attempts {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 1rem;
 }
 
-#successMsg.visible {
-  display: block;
+.attempt-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ccc;
+}
+
+.attempt-dot.active {
+    background: #378ADD;
+}
+
+.attempt-dot.expired {
+    background: #E24B4A;
+}
+
+.attempt-dot.done {
+    background: #639922;
+}
+
+.attempt-label {
+    font-size: 12px;
+    color: #888;
+    margin-left: 4px;
+}
+
+/* ─── BANNIÈRE EXPIRATION ────────────────── */
+
+.expire-banner {
+    display: none;
+    background: #FCEBEB;
+    border: 0.5px solid #E24B4A;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 1rem;
+    font-size: 13px;
+    color: #A32D2D;
+}
+
+.expire-banner.visible {
+    display: block;
+}
+
+/* ─── QUESTION & AUDIO ───────────────────── */
+
+.question-text {
+    font-size: 15px;
+    color: #111;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+
+.audio-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f5f5f3;
+    border-radius: 8px;
+    padding: 10px 14px;
+}
+
+.play-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #185FA5;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.audio-track {
+    flex: 1;
+    height: 3px;
+    background: #ddd;
+    border-radius: 2px;
+}
+
+.audio-progress {
+    width: 0%;
+    height: 100%;
+    background: #378ADD;
+    border-radius: 2px;
+    transition: width 0.3s linear;
+}
+
+.audio-time-label {
+    font-size: 12px;
+    color: #aaa;
+    min-width: 36px;
+    text-align: right;
+}
+
+/* ─── CHRONO LECTURE 30s ─────────────────── */
+
+.reading-timer {
+    background: #FAEEDA;
+    border: 0.5px solid #BA7517;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.reading-timer.urgent {
+    background: #FCEBEB;
+    border-color: #E24B4A;
+}
+
+.reading-left {
+    font-size: 13px;
+    color: #854F0B;
+}
+
+.reading-timer.urgent .reading-left {
+    color: #A32D2D;
+}
+
+.reading-bar {
+    width: 180px;
+    height: 4px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 2px;
+    margin-top: 6px;
+}
+
+.reading-fill {
+    height: 100%;
+    background: #BA7517;
+    border-radius: 2px;
+    transition: width 1s linear;
+}
+
+.reading-timer.urgent .reading-fill {
+    background: #E24B4A;
+}
+
+.reading-count {
+    font-size: 24px;
+    font-weight: 500;
+    color: #854F0B;
+    font-family: monospace;
+}
+
+.reading-timer.urgent .reading-count {
+    color: #E24B4A;
+}
+
+/* ─── CHRONO RÉPONSE 2min ────────────────── */
+
+.response-timer {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    background: #f5f5f3;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 1rem;
+}
+
+.response-timer.visible {
+    display: flex;
+}
+
+.timer-left-label {
+    font-size: 13px;
+    color: #888;
+}
+
+.timer-bar {
+    width: 200px;
+    height: 4px;
+    background: #ddd;
+    border-radius: 2px;
+    margin-top: 6px;
+}
+
+.timer-fill {
+    height: 100%;
+    background: #378ADD;
+    border-radius: 2px;
+    transition: width 1s linear;
+}
+
+.timer-fill.urgent {
+    background: #E24B4A;
+}
+
+.timer-display {
+    font-size: 28px;
+    font-weight: 500;
+    color: #111;
+    font-family: monospace;
+}
+
+.timer-display.urgent {
+    color: #E24B4A;
+}
+
+/* ─── MICRO ──────────────────────────────── */
+
+.mic-card {
+    text-align: center;
+    padding: 2rem 1.5rem;
+}
+
+.mic-outer {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 0.5px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    cursor: pointer;
+    background: #fff;
+}
+
+.mic-outer.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.mic-outer.recording {
+    background: #FCEBEB;
+    border-color: #E24B4A;
+}
+
+.mic-outer.done {
+    background: #EAF3DE;
+    border-color: #639922;
+}
+
+.mic-inner {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #E6F1FB;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mic-outer.recording .mic-inner {
+    background: #FCEBEB;
+}
+
+.mic-outer.done .mic-inner {
+    background: #EAF3DE;
+}
+
+.wave {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    height: 32px;
+    margin: 1rem 0;
+}
+
+.wave-bar {
+    width: 4px;
+    background: #378ADD;
+    border-radius: 2px;
+    height: 8px;
+}
+
+.wave-bar.active {
+    animation: wave 0.8s ease-in-out infinite;
+}
+
+.wave-bar:nth-child(2) { animation-delay: 0.1s; }
+.wave-bar:nth-child(3) { animation-delay: 0.2s; }
+.wave-bar:nth-child(4) { animation-delay: 0.3s; }
+.wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+@keyframes wave {
+    0%, 100% { height: 8px; }
+    50% { height: 28px; }
+}
+
+.mic-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: #111;
+    margin-bottom: 4px;
+}
+
+.mic-sub {
+    font-size: 13px;
+    color: #888;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    background: #185FA5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 1rem;
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.submit-btn.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.submit-btn.active:hover {
+    background: #0C447C;
+}
+
+/* ─── RÉSULTAT FINAL ─────────────────────── */
+
+.result-card {
+    background: #fff;
+    border: 0.5px solid rgba(0,0,0,0.12);
+    border-radius: 12px;
+    padding: 2.5rem;
+    text-align: center;
+    display: none;
+}
+
+.result-card.visible {
+    display: block;
+}
+
+.result-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.result-icon.success {
+    background: #EAF3DE;
+}
+
+.result-icon.error {
+    background: #FCEBEB;
+}
+
+.result-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: #111;
+    margin-bottom: 6px;
+}
+
+.result-sub {
+    font-size: 13px;
+    color: #888;
+    line-height: 1.6;
+}
+/* ─── BOUTONS DE TÉLÉCHARGEMENT ─────────── */
+.download-btn {
+    width: 100%;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    background: #ffffff;
+    color: #185FA5;
+    border: 1px solid #185FA5;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.download-btn:hover {
+    background: #E6F1FB;
+}
+
+/* On s'assure qu'ils sont bien centrés dans la carte micro */
+.mic-card .download-btn {
+    display: none; /* Géré par le JS */
+}
+/* Le bouton soumettre est géré par la classe .active via JS */
+
+/* ─── CHRONO PRÉPA : layout droite + bouton ─── */
+.reading-timer-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.ready-btn {
+    font-size: 11px;
+    font-weight: 500;
+    color: #854F0B;
+    background: rgba(186, 117, 23, 0.12);
+    border: 1px solid #BA7517;
+    border-radius: 20px;
+    padding: 4px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+}
+
+.ready-btn:hover {
+    background: rgba(186, 117, 23, 0.25);
+}
+
+.reading-timer.urgent .ready-btn {
+    color: #A32D2D;
+    background: rgba(226, 75, 74, 0.12);
+    border-color: #E24B4A;
+}
+
+.reading-timer.urgent .ready-btn:hover {
+    background: rgba(226, 75, 74, 0.25);
 }
