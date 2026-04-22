@@ -27,6 +27,52 @@ const API = {
     apply    : `${BASE_URL}/applications`,
 }
 
+// ─── TEXT-TO-SPEECH ───────────────────────────────────────────────────────────
+// Lit un texte à voix haute via speechSynthesis du navigateur
+function speakText(text, onProgress, onEnd) {
+    window.speechSynthesis.cancel()
+
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang  = 'fr-FR'
+    utterance.rate  = 0.95
+    utterance.pitch = 1
+
+    // Choisir une voix française si disponible
+    const trySpeak = () => {
+        const voices  = window.speechSynthesis.getVoices()
+        const frVoice = voices.find(v => v.name === 'Microsoft Paul - French (France)')
+        if (frVoice) utterance.voice = frVoice
+
+        // Simuler la progression (speechSynthesis ne donne pas de % précis)
+        const duration = Math.max(text.length * 55, 3000)
+        const step     = 100 / (duration / 100)
+        let prog = 0
+        const pi = setInterval(() => {
+            prog = Math.min(prog + step, 99)
+            onProgress && onProgress(prog)
+        }, 100)
+
+        utterance.onend = () => {
+            clearInterval(pi)
+            onProgress && onProgress(100)
+            onEnd && onEnd()
+        }
+        utterance.onerror = () => {
+            clearInterval(pi)
+            onEnd && onEnd()
+        }
+
+        window.speechSynthesis.speak(utterance)
+    }
+
+    // Les voix peuvent ne pas être chargées immédiatement
+    if (window.speechSynthesis.getVoices().length > 0) {
+        trySpeak()
+    } else {
+        window.speechSynthesis.onvoiceschanged = trySpeak
+    }
+}
+
 function simulateUpload(blob, type) {
     return new Promise((resolve) => {
         console.log(`[Demo] Envoi du flux ${type} en cours...`);
@@ -115,46 +161,34 @@ function simulateUpload(blob, type) {
     })
 
     // Variables de session — remplies par les réponses de l'API
-    let cvUrl        = null   // reçu après upload CV
-    let aiQuestion   = null   // question générée par l'IA depuis le CV
-    let candidateId  = null   // reçu après upload CV
+    let cvUrl        = null
+    let aiQuestion   = null
+    let candidateId  = null
 
     submitCvBtn.addEventListener('click', async () => {
         submitCvBtn.textContent = 'Analyse du profil...';
         submitCvBtn.classList.remove('active');
 
-          try {
-            // ── API CALL 1 : Upload du CV ─────────────────────────────────
-            // POST /candidates/{job_id}/cv
-            // Body : multipart/form-data { cv: File }
-            // Réponse : { candidate_id, cv_url, ai_question, ... }
-            const formData = new FormData()
-            formData.append('cv', fileInput.files[0])
-
-            const response = await fetch(API.uploadCV, {
-                method: 'POST',
-                body: formData
-                // Pas de header Authorization (retiré par le backend)
-                // Pas de Content-Type : le navigateur le génère automatiquement avec le boundary
-            })
-
-            if (!response.ok) throw new Error('Upload CV échoué : ' + response.status)
-
-            const data  = await response.json()
-            candidateId = data.candidate_id
-            cvUrl       = data.cv_url
-            aiQuestion  = data.ai_question  // ← question générée par l'IA depuis le CV
-
-            console.log('[HireBox] CV uploadé :', data)
-
-        } catch (err) {
-            console.error('[HireBox] Erreur upload CV :', err)
-            submitCvBtn.textContent = 'Envoyer mon CV'
-            submitCvBtn.classList.add('active')
-            errorMsg.textContent = "Erreur lors de l'envoi du CV. Veuillez réessayer."
-            errorMsg.classList.add('visible')
-            return
-        }
+        // ── API CALL 1 : Upload du CV ─────────────────────────────────────
+        // Décommenter quand le backend autorise le CORS :
+        // try {
+        //     const formData = new FormData()
+        //     formData.append('cv', fileInput.files[0])
+        //     const response = await fetch(API.uploadCV, { method: 'POST', body: formData })
+        //     if (!response.ok) throw new Error('Upload CV échoué : ' + response.status)
+        //     const data  = await response.json()
+        //     candidateId = data.candidate_id
+        //     cvUrl       = data.cv_url
+        //     aiQuestion  = data.ai_question
+        //     console.log('[HireBox] CV uploadé :', data)
+        // } catch (err) {
+        //     console.error('[HireBox] Erreur upload CV :', err)
+        //     submitCvBtn.textContent = 'Envoyer mon CV'
+        //     submitCvBtn.classList.add('active')
+        //     errorMsg.textContent = "Erreur lors de l'envoi du CV. Veuillez réessayer."
+        //     errorMsg.classList.add('visible')
+        //     return
+        // }
 
         uploadSection.style.display = 'none'
         step1.classList.remove('active'); step1.classList.add('done');
@@ -165,9 +199,8 @@ function simulateUpload(blob, type) {
 
     // ─── PHASE 2 : INTERVIEW ──────────────────────────────────────────────
     let attempt = 0;
-    // Variables interview
     let readingRemaining = 30, readingInterval = null;
-    let responseRemaining = 90, responseInterval = null;  // 1m30
+    let responseRemaining = 90, responseInterval = null;
     let isRecording = false, sessionStarted = false;
     let mediaRecorder = null, audioChunks = [], audioBlob = null;
 
@@ -186,32 +219,47 @@ function simulateUpload(blob, type) {
     const expireBanner     = document.getElementById('expireBanner')
     const resultCard       = document.getElementById('resultCard')
 
-    // Clic sur Play → déverrouille le micro SANS toucher au chrono 30s
+    // ── Bouton Play interview : TTS + déverrouillage micro ────────────────
     document.getElementById('playBtn').addEventListener('click', function () {
-        this.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
+        const btn = this
+        const questionText = document.getElementById('questionText').textContent
+
+        // Si déjà en lecture → arrêter
+        if (btn.dataset.speaking === 'true') {
+            window.speechSynthesis.cancel()
+            btn.dataset.speaking = 'false'
+            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><polygon points="5,3 19,12 5,21"/></svg>'
+            document.getElementById('audioProgress').style.width = '0%'
+            return
+        }
+
+        btn.dataset.speaking = 'true'
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
         unlockMicOnly()   // micro dispo, chrono continue
-        let prog = 0
-        const pi = setInterval(() => {
-            prog += 1.5
-            document.getElementById('audioProgress').style.width = Math.min(prog, 100) + '%'
-            if (prog >= 100) {
-                clearInterval(pi)
-                this.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><polygon points="5,3 19,12 5,21"/></svg>'
+
+        speakText(
+            questionText,
+            (prog) => { document.getElementById('audioProgress').style.width = prog + '%' },
+            () => {
+                btn.dataset.speaking = 'false'
+                btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><polygon points="5,3 19,12 5,21"/></svg>'
             }
-        }, 100)
+        )
     })
 
-    // Bouton "Je suis prêt" → arrête le chrono ET déverrouille le micro
-    document.getElementById('readyBtn').addEventListener('click', () => { unlockMic(); startRecording(); })
+    // Bouton "Je suis prêt" → arrête le chrono ET démarre l'enregistrement
+    document.getElementById('readyBtn').addEventListener('click', () => {
+        window.speechSynthesis.cancel()
+        unlockMic()
+        startRecording()
+    })
 
-    // Déverrouille uniquement le micro — le chrono continue (appelé par Play)
     function unlockMicOnly() {
         micOuter.classList.remove('disabled')
         micTitle.textContent = 'Appuyez pour parler'
         micSub.textContent   = 'Cliquez sur le micro pour démarrer votre réponse'
     }
 
-    // Arrête le chrono ET déverrouille le micro (appelé par "Je suis prêt" et expiration)
     function unlockMic() {
         clearInterval(readingInterval)
         readingTimer.style.display = 'none'
@@ -223,7 +271,6 @@ function simulateUpload(blob, type) {
         loadQuestion()
     }
 
-    // Questions : la 1ère vient de l'IA (via le CV uploadé), les suivantes sont de secours
     const questions = [
         aiQuestion || `Bonjour ${userName}, votre CV mentionne une expérience en développement. Pouvez-vous décrire un projet concret ?`,
         `${userName}, comment gérez-vous les imprévus ou les blocages techniques en cours de projet ?`,
@@ -231,24 +278,24 @@ function simulateUpload(blob, type) {
     ];
 
     function loadQuestion() {
-        doSubmitResponse._done = false;  // reset du garde anti-double-appel
+        doSubmitResponse._done = false;
+        window.speechSynthesis.cancel()
+
         document.getElementById('questionText').textContent = questions[attempt];
         document.getElementById('attemptLabel').textContent = 'Question ' + (attempt + 1) + ' sur 3';
-
         document.getElementById('audioProgress').style.width = '0%';
         document.getElementById('playBtn').innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><polygon points="5,3 19,12 5,21"/></svg>';
+        document.getElementById('playBtn').dataset.speaking = 'false';
 
-        // Mise à jour des dots
         for (let i = 0; i < 3; i++) {
             const dot = document.getElementById('dot' + i);
             if (!dot) continue;
             dot.style.display = '';
             dot.className = 'attempt-dot';
-            if (i < attempt)       dot.classList.add('expired');
+            if (i < attempt)        dot.classList.add('expired');
             else if (i === attempt) dot.classList.add('active');
         }
 
-        // Réinitialisation état
         readingRemaining = 30; responseRemaining = 90;
         sessionStarted = false; isRecording = false;
         audioChunks = []; audioBlob = null;
@@ -269,7 +316,6 @@ function simulateUpload(blob, type) {
         submitBtn.classList.remove('active');
         waveBars.forEach(b => b.classList.remove('active'));
 
-        // Cache la réécoute de la question précédente
         const replayCard = document.getElementById('replayCard');
         if (replayCard) replayCard.style.display = 'none';
 
@@ -285,22 +331,18 @@ function simulateUpload(blob, type) {
             if (readingRemaining <= 10) readingTimer.classList.add('urgent')
             if (readingRemaining <= 0) {
                 clearInterval(readingInterval);
-                // Le candidat n'a rien fait : on passe à la question suivante
-                // (ou à la présentation si c'était la dernière)
                 skipToNext();
             }
         }, 1000)
     }
 
     function skipToNext() {
-        // Marque la tentative comme expirée
+        window.speechSynthesis.cancel()
         const dot = document.getElementById('dot' + attempt);
         if (dot) dot.classList.replace('active', 'expired');
-
         attempt++;
 
         if (attempt < 3) {
-            // Affiche la bannière puis charge la question suivante
             expireBanner.textContent = 'Temps écoulé — question suivante (' + attempt + ' sur 3)';
             expireBanner.classList.add('visible');
             setTimeout(() => {
@@ -308,7 +350,6 @@ function simulateUpload(blob, type) {
                 loadQuestion();
             }, 2000);
         } else {
-            // Les 3 tentatives sont épuisées → présentation
             interviewSection.style.display = 'none';
             step2.classList.remove('active'); step2.classList.add('done');
             step2.querySelector('.step-circle').textContent = '✓';
@@ -322,7 +363,6 @@ function simulateUpload(blob, type) {
     });
 
     async function startRecording() {
-        // Démarrer le chrono 1m30 IMMÉDIATEMENT, avant la demande de permission micro
         if (!sessionStarted) {
             sessionStarted = true;
             clearInterval(readingInterval);
@@ -331,7 +371,6 @@ function simulateUpload(blob, type) {
             startResponseTimer();
         }
 
-        // Feedback visuel immédiat — le candidat sait que c'est en cours
         micOuter.classList.remove('disabled')
         micTitle.textContent = 'Activation du micro...'
         micSub.textContent   = "Veuillez autoriser l'accès au microphone"
@@ -344,7 +383,6 @@ function simulateUpload(blob, type) {
             mediaRecorder.onstop = () => {
                 audioBlob = new Blob(audioChunks, { type: 'audio/webm' })
                 stream.getTracks().forEach(t => t.stop())
-                // Réécoute disponible
                 const replayCard  = document.getElementById('replayCard')
                 const replayAudio = document.getElementById('replayAudio')
                 if (replayCard && replayAudio) {
@@ -363,7 +401,6 @@ function simulateUpload(blob, type) {
             waveBars.forEach(b => b.classList.add('active'))
 
         } catch (err) {
-            // Si le micro est refusé, on arrête le chrono et on réinitialise
             sessionStarted = false;
             responseTimer.classList.remove('visible');
             clearInterval(responseInterval);
@@ -404,15 +441,15 @@ function simulateUpload(blob, type) {
     async function doSubmitResponse() {
         if (doSubmitResponse._done) return;
         doSubmitResponse._done = true;
+        window.speechSynthesis.cancel()
         clearInterval(readingInterval);
         clearInterval(responseInterval);
         submitBtn.classList.remove('active');
         submitBtn.disabled = true;
 
-        const currentQ   = document.getElementById('questionText').textContent;
+        const currentQ    = document.getElementById('questionText').textContent;
         const questionNum = attempt + 1;
 
-        // Créer la carte historique immédiatement — l'audio sera injecté après
         const historyItem = document.createElement('div');
         historyItem.className = 'card';
         historyItem.style.cssText = "border-left: 4px solid #378ADD; margin-bottom: 1rem;";
@@ -426,11 +463,9 @@ function simulateUpload(blob, type) {
         historyItem.appendChild(audioEl);
         interviewSection.before(historyItem);
 
-        // Arrêt du micro en arrière-plan — on n'attend PAS le blob pour avancer
         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
             mediaRecorder.addEventListener('stop', () => {
-                const chunks = audioChunks.slice()
-                const blob = new Blob(chunks, { type: 'audio/webm' })
+                const blob = new Blob(audioChunks.slice(), { type: 'audio/webm' })
                 audioEl.src = URL.createObjectURL(blob)
                 audioBlob = blob
             }, { once: true })
@@ -440,12 +475,10 @@ function simulateUpload(blob, type) {
             audioEl.src = URL.createObjectURL(audioBlob)
         }
 
-        // Marque la tentative comme réussie
         const dotDone = document.getElementById('dot' + attempt);
         if (dotDone) dotDone.classList.replace('active', 'done');
         attempt++;
 
-        // Transition immédiate — sans attendre le blob
         interviewSection.style.display = 'none';
         step2.classList.remove('active'); step2.classList.add('done');
         step2.querySelector('.step-circle').textContent = '✓';
@@ -453,46 +486,55 @@ function simulateUpload(blob, type) {
     }
 
     // ─── PHASE 2b : PRÉSENTATION ──────────────────────────────────────────
-    // Même logique que l'interview : 30s prépa → micro dispo → 1m30 pour répondre
-    const presentationSection    = document.getElementById('presentation-section')
-    const micOuterP              = document.getElementById('micOuterPresentation')
-    const micTitleP              = document.getElementById('micTitlePresentation')
-    const micSubP                = document.getElementById('micSubPresentation')
-    const submitBtnP             = document.getElementById('submitBtnPresentation')
+    const presentationSection = document.getElementById('presentation-section')
+    const micOuterP           = document.getElementById('micOuterPresentation')
+    const micTitleP           = document.getElementById('micTitlePresentation')
+    const micSubP             = document.getElementById('micSubPresentation')
+    const submitBtnP          = document.getElementById('submitBtnPresentation')
     submitBtnP.addEventListener('click', doSubmitPresentation)
-    const responseTimerP         = document.getElementById('responseTimerPresentation')
-    const timerDisplayP          = document.getElementById('timerDisplayPresentation')
-    const timerFillP             = document.getElementById('timerFillPresentation')
-    const waveBarsP              = document.querySelectorAll('#wavePresentation .wave-bar')
+    const responseTimerP      = document.getElementById('responseTimerPresentation')
+    const timerDisplayP       = document.getElementById('timerDisplayPresentation')
+    const timerFillP          = document.getElementById('timerFillPresentation')
+    const waveBarsP           = document.querySelectorAll('#wavePresentation .wave-bar')
 
     let readingRemainingP = 30, readingIntervalP = null;
-    let responseRemainingP = 90, responseIntervalP = null;  // 1m30
+    let responseRemainingP = 90, responseIntervalP = null;
     let isRecordingP = false, sessionStartedP = false;
     let mediaRecorderP = null, audioChunksP = [], audioBlobP = null;
 
-    // Clic sur Play de la présentation → déverrouille le micro SANS toucher au chrono
+    // ── Bouton Play présentation : TTS + déverrouillage micro ─────────────
     document.getElementById('playBtnPresentation').addEventListener('click', function () {
-        this.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
-        unlockMicOnlyP()   // micro dispo, chrono continue
-        let prog = 0
-        const pi = setInterval(() => {
-            prog += 1.5
-            document.getElementById('audioProgressPresentation').style.width = Math.min(prog, 100) + '%'
-            if (prog >= 100) {
-                clearInterval(pi)
-                this.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><polygon points="5,3 19,12 5,21"/></svg>'
+        const btn = this
+        const questionText = document.getElementById('questionTextPresentation').textContent
+
+        if (btn.dataset.speaking === 'true') {
+            window.speechSynthesis.cancel()
+            btn.dataset.speaking = 'false'
+            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><polygon points="5,3 19,12 5,21"/></svg>'
+            document.getElementById('audioProgressPresentation').style.width = '0%'
+            return
+        }
+
+        btn.dataset.speaking = 'true'
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
+        unlockMicOnlyP()
+
+        speakText(
+            questionText,
+            (prog) => { document.getElementById('audioProgressPresentation').style.width = prog + '%' },
+            () => {
+                btn.dataset.speaking = 'false'
+                btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><polygon points="5,3 19,12 5,21"/></svg>'
             }
-        }, 100)
+        )
     })
 
-    // Déverrouille uniquement le micro présentation — chrono continue (appelé par Play)
     function unlockMicOnlyP() {
         micOuterP.classList.remove('disabled')
         micTitleP.textContent = 'Appuyez pour parler'
         micSubP.textContent   = 'Cliquez sur le micro pour démarrer votre réponse'
     }
 
-    // Arrête le chrono ET déverrouille le micro présentation (appelé par "Je suis prêt" et expiration)
     function unlockMicP() {
         clearInterval(readingIntervalP)
         const rtP = document.getElementById('readingTimerPresentation')
@@ -500,24 +542,20 @@ function simulateUpload(blob, type) {
         unlockMicOnlyP()
     }
 
-function startPresentation() {
-        doSubmitPresentation._done = false;  // reset du garde anti-double-appel
-        // Réinitialise l'état
+    function startPresentation() {
+        doSubmitPresentation._done = false;
+        window.speechSynthesis.cancel()
         readingRemainingP = 30; responseRemainingP = 90;
         sessionStartedP = false; isRecordingP = false;
         audioChunksP = []; audioBlobP = null;
 
         presentationSection.style.display = 'block'
 
-        // Mise à jour de la question
         const qTextP = document.getElementById('questionTextPresentation');
         if (qTextP) qTextP.textContent = `${userName}, pouvez-vous vous présenter brièvement ?`;
 
-        // GESTION DU TIMER DE PRÉPARATION
         let rtP = document.getElementById('readingTimerPresentation');
-        
         if (!rtP) {
-            // 1. CRÉATION
             rtP = document.createElement('div');
             rtP.id = 'readingTimerPresentation';
             rtP.className = 'reading-timer';
@@ -533,24 +571,26 @@ function startPresentation() {
             `;
             const micCard = micOuterP.closest('.card');
             micCard.parentNode.insertBefore(rtP, micCard);
-
-            // 2. ATTACHE DE L'ÉVÉNEMENT (Crucial ici !)
-            document.getElementById('readyBtnPresentation').addEventListener('click', () => { unlockMicP(); startRecordingP(); });
+            document.getElementById('readyBtnPresentation').addEventListener('click', () => {
+                window.speechSynthesis.cancel()
+                unlockMicP()
+                startRecordingP()
+            });
         }
 
-        // 3. RÉINITIALISATION VISUELLE
         rtP.style.display = 'flex';
         rtP.classList.remove('urgent');
         document.getElementById('readingFillPresentation').style.width = '100%';
         document.getElementById('readingCountPresentation').textContent = '30';
+        document.getElementById('playBtnPresentation').dataset.speaking = 'false';
+        document.getElementById('playBtnPresentation').innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><polygon points="5,3 19,12 5,21"/></svg>';
+        document.getElementById('audioProgressPresentation').style.width = '0%';
 
-        // Reset UI micro
         micOuterP.className = 'mic-outer disabled';
         micTitleP.textContent = "Écoutez la question d'abord";
         micSubP.textContent = "Le micro s'activera dans 30 secondes maximum";
         submitBtnP.classList.remove('active');
         waveBarsP.forEach(b => b.classList.remove('active'));
-        document.getElementById('audioProgressPresentation').style.width = '0%';
 
         startReadingTimerP();
     }
@@ -574,8 +614,7 @@ function startPresentation() {
         else await startRecordingP();
     });
 
-async function startRecordingP() {
-        // Démarrer le chrono 1m30 IMMÉDIATEMENT, avant la demande de permission micro
+    async function startRecordingP() {
         if (!sessionStartedP) {
             sessionStartedP = true;
             clearInterval(readingIntervalP);
@@ -587,7 +626,6 @@ async function startRecordingP() {
             startResponseTimerP();
         }
 
-        // Feedback visuel immédiat
         micOuterP.classList.remove('disabled')
         micTitleP.textContent = 'Activation du micro...'
         micSubP.textContent   = "Veuillez autoriser l'accès au microphone"
@@ -597,12 +635,9 @@ async function startRecordingP() {
             const streamP = await navigator.mediaDevices.getUserMedia({ audio: true })
             mediaRecorderP = new MediaRecorder(streamP)
             mediaRecorderP.ondataavailable = (e) => { if (e.data.size > 0) audioChunksP.push(e.data) }
-            
             mediaRecorderP.onstop = () => {
                 audioBlobP = new Blob(audioChunksP, { type: 'audio/webm' })
                 streamP.getTracks().forEach(t => t.stop())
-                
-                // Réécoute disponible
                 const replayCardP  = document.getElementById('replayCardPresentation')
                 const replayAudioP = document.getElementById('replayAudioPresentation')
                 if (replayCardP && replayAudioP) {
@@ -612,7 +647,6 @@ async function startRecordingP() {
                 submitBtnP.classList.add('active');
                 submitBtnP.disabled = false;
             }
-            
             mediaRecorderP.start()
 
             isRecordingP = true;
@@ -623,7 +657,6 @@ async function startRecordingP() {
             waveBarsP.forEach(b => b.classList.add('active'))
 
         } catch (err) {
-            // Si le micro est refusé, on arrête le chrono et on réinitialise
             sessionStartedP = false;
             responseTimerP.classList.remove('visible');
             clearInterval(responseIntervalP);
@@ -660,17 +693,16 @@ async function startRecordingP() {
         }, 1000)
     }
 
-async function doSubmitPresentation() {
-        // Garde anti-double-appel
+    async function doSubmitPresentation() {
         if (doSubmitPresentation._done) return;
         doSubmitPresentation._done = true;
+        window.speechSynthesis.cancel()
 
         clearInterval(readingIntervalP);
         clearInterval(responseIntervalP);
         submitBtnP.classList.remove('active');
         submitBtnP.disabled = true;
 
-        // Arrêt du micro en arrière-plan — transition immédiate sans attendre le blob
         const currentQP = document.getElementById('questionTextPresentation').textContent;
         const historyItem = document.createElement('div');
         historyItem.className = 'card';
@@ -696,53 +728,26 @@ async function doSubmitPresentation() {
         } else if (audioBlobP) {
             audioElP.src = URL.createObjectURL(audioBlobP)
         }
-        // ------------------------------------------------
 
-        try {
-            // ── API CALL 2 : Soumission finale de la candidature ──────────
-            // POST /applications
-            // Body : multipart/form-data
-            //   email                  ← à collecter (voir note ci-dessous)
-            //   job_id                 ← JOB_ID défini en haut du script
-            //   nom                    ← extrait du nom de fichier CV
-            //   prenom                 ← extrait du nom de fichier CV
-            //   telephone              ← à collecter
-            //   resume_url             ← reçu après upload CV
-            //   introduction_audio     ← blob audio de la présentation
-            //   question_on_resume_audio ← blob audio de la réponse à la question IA
-            //
-            // ⚠️  NOTE : email, nom, prenom, telephone sont "required" côté API.
-            //     Si tu n'as pas de formulaire pour les collecter, demande au backend
-            //     de les rendre optionnels ou ajoute un mini-formulaire avant l'upload.
-
-            const fd = new FormData()
-            fd.append('job_id',   JOB_ID)
-            fd.append('nom',      userName)       // nom extrait du fichier CV
-            fd.append('prenom',   '')             // ⬅️ à remplir si collecté
-            fd.append('email',    '')             // ⬅️ à remplir si collecté
-            fd.append('telephone','')             // ⬅️ à remplir si collecté
-            fd.append('resume_url', cvUrl || '')
-
-            // Audio de la réponse à la question IA
-            if (audioBlob) fd.append('question_on_resume_audio', audioBlob, 'reponse.webm')
-
-            // Audio de la présentation
-            if (audioBlobP) fd.append('introduction_audio', audioBlobP, 'presentation.webm')
-
-            const response = await fetch(API.apply, {
-                method: 'POST',
-                body: fd
-            })
-
-            if (!response.ok) throw new Error('Soumission échouée : ' + response.status)
-
-            const data = await response.json()
-            console.log('[HireBox] Candidature soumise :', data)
-
-        } catch (err) {
-            console.error('[HireBox] Erreur soumission :', err)
-            // On affiche quand même le succès car les audios sont enregistrés localement
-        }
+        // ── API CALL 2 : Soumission finale ────────────────────────────────
+        // Décommenter quand le backend autorise le CORS :
+        // try {
+        //     const fd = new FormData()
+        //     fd.append('job_id',    JOB_ID)
+        //     fd.append('nom',       userName)
+        //     fd.append('prenom',    '')
+        //     fd.append('email',     '')
+        //     fd.append('telephone', '')
+        //     fd.append('resume_url', cvUrl || '')
+        //     if (audioBlob)  fd.append('question_on_resume_audio', audioBlob,  'reponse.webm')
+        //     if (audioBlobP) fd.append('introduction_audio',       audioBlobP, 'presentation.webm')
+        //     const response = await fetch(API.apply, { method: 'POST', body: fd })
+        //     if (!response.ok) throw new Error('Soumission échouée : ' + response.status)
+        //     const data = await response.json()
+        //     console.log('[HireBox] Candidature soumise :', data)
+        // } catch (err) {
+        //     console.error('[HireBox] Erreur soumission :', err)
+        // }
 
         presentationSection.style.display = 'none';
         step3.classList.remove('active'); step3.classList.add('done');
@@ -751,7 +756,7 @@ async function doSubmitPresentation() {
         document.getElementById('resultIcon').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#3B6D11" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><polyline points="20 6 9 17 4 12"/></svg>'
         document.getElementById('resultIcon').className   = 'result-icon success'
         document.getElementById('resultTitle').textContent = `Merci ${userName}, votre candidature est envoyée !`
-        document.getElementById('resultSub').textContent  = "L'équipe RH vous contactera prochainement."
+        document.getElementById('resultSub').textContent  = "Votre candidature a bien été reçue et sera examinée par notre équipe de recrutement. Nous vous contacterons si votre profil correspond à nos besoins."
         resultCard.classList.add('visible');
     }
 
