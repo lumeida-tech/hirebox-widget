@@ -11,10 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as DashboardTestRouteImport } from './routes/dashboard-test'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CandidatesRouteImport } from './routes/candidates'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthActivateRouteImport } from './routes/auth/activate'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -26,19 +27,13 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardTestRoute = DashboardTestRouteImport.update({
-  id: '/dashboard-test',
-  path: '/dashboard-test',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CandidatesRoute = CandidatesRouteImport.update({
   id: '/candidates',
   path: '/candidates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -46,66 +41,78 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthActivateRoute = AuthActivateRouteImport.update({
+  id: '/auth/activate',
+  path: '/auth/activate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/candidates': typeof CandidatesRoute
-  '/dashboard': typeof DashboardRoute
-  '/dashboard-test': typeof DashboardTestRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/auth/activate': typeof AuthActivateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/candidates': typeof CandidatesRoute
-  '/dashboard': typeof DashboardRoute
-  '/dashboard-test': typeof DashboardTestRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/auth/activate': typeof AuthActivateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/candidates': typeof CandidatesRoute
-  '/dashboard': typeof DashboardRoute
-  '/dashboard-test': typeof DashboardTestRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/auth/activate': typeof AuthActivateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/candidates'
-    | '/dashboard'
-    | '/dashboard-test'
     | '/login'
     | '/signup'
+    | '/dashboard'
+    | '/auth/activate'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/candidates'
-    | '/dashboard'
-    | '/dashboard-test'
     | '/login'
     | '/signup'
+    | '/dashboard'
+    | '/auth/activate'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/candidates'
-    | '/dashboard'
-    | '/dashboard-test'
     | '/login'
     | '/signup'
+    | '/_authenticated/dashboard'
+    | '/auth/activate'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   CandidatesRoute: typeof CandidatesRoute
-  DashboardRoute: typeof DashboardRoute
-  DashboardTestRoute: typeof DashboardTestRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  AuthActivateRoute: typeof AuthActivateRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -124,25 +131,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard-test': {
-      id: '/dashboard-test'
-      path: '/dashboard-test'
-      fullPath: '/dashboard-test'
-      preLoaderRoute: typeof DashboardTestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/candidates': {
       id: '/candidates'
       path: '/candidates'
       fullPath: '/candidates'
       preLoaderRoute: typeof CandidatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -152,16 +152,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/activate': {
+      id: '/auth/activate'
+      path: '/auth/activate'
+      fullPath: '/auth/activate'
+      preLoaderRoute: typeof AuthActivateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
   CandidatesRoute: CandidatesRoute,
-  DashboardRoute: DashboardRoute,
-  DashboardTestRoute: DashboardTestRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  AuthActivateRoute: AuthActivateRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

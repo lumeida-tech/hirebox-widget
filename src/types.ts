@@ -16,3 +16,5 @@ export type Recruitment = {
   createdAt: Date
   candidates: Candidate[]
 }
+
+export type ActiveView = 'dashboard' | 'candidates' | 'recruitments'

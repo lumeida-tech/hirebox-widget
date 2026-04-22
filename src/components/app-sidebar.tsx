@@ -2,7 +2,7 @@ import * as React from "react"
 import {
   IconDashboard,
   IconInnerShadowTop,
-  IconUsers,
+  //IconUsers,
   IconBriefcase,
   IconCirclePlus,
 } from "@tabler/icons-react"
@@ -17,7 +17,7 @@ import {
   SidebarMenuItem,
 } from "#/components/ui/sidebar"
 import { CreateRecruitmentDialog } from "#/components/create-recruitment-dialog"
-import type { ActiveView } from "#/routes/dashboard-test"
+import type { ActiveView } from "@/types"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   activeView: ActiveView

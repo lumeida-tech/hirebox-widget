@@ -10,10 +10,10 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
 
-export type ActiveView = 'dashboard' | 'candidates' | 'recruitments'
+import type { ActiveView } from '@/types'
 
-export const Route = createFileRoute('/dashboard-test')({
-  component: RouteComponent,
+export const Route = createFileRoute('/_authenticated/dashboard')({
+  component: RouteComponent, 
 })
 
 function RouteComponent() {
