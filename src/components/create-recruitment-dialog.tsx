@@ -2,34 +2,24 @@ import * as React from "react"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-} from "#/components/ui/dialog"
-import { Button } from "#/components/ui/button"
-import { Input } from "#/components/ui/input"
-import { Label } from "#/components/ui/label"
-import { Textarea } from "#/components/ui/textarea"
+  DialogDescription,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "#/components/ui/select"
-
-export type Recruitment = {
-  id: string
-  title: string
-  company: string
-  contractType: string
-  description: string
-  requirements: string
-  location: string
-  createdAt: Date
-}
+} from "@/components/ui/select"
+import type { Recruitment } from "@/types"
 
 interface CreateRecruitmentDialogProps {
   children: React.ReactNode
@@ -56,6 +46,7 @@ export function CreateRecruitmentDialog({ children, onCreated }: CreateRecruitme
     const recruitment: Recruitment = {
       id: crypto.randomUUID(),
       ...form,
+      candidates: [],       // nouveau recrutement sans candidats
       createdAt: new Date(),
     }
     onCreated?.(recruitment)
@@ -69,13 +60,12 @@ export function CreateRecruitmentDialog({ children, onCreated }: CreateRecruitme
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Créer une offre de recrutement</DialogTitle>
-            <DialogDescription>
-              Remplissez les informations pour publier une nouvelle offre.
-            </DialogDescription>
+          <DialogDescription>
+            Remplissez les informations pour publier une nouvelle offre.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-2">
-          {/* Titre du poste */}
           <div className="grid gap-1.5">
             <Label htmlFor="title">Titre du poste <span className="text-destructive">*</span></Label>
             <Input
@@ -86,7 +76,6 @@ export function CreateRecruitmentDialog({ children, onCreated }: CreateRecruitme
             />
           </div>
 
-          {/* Entreprise */}
           <div className="grid gap-1.5">
             <Label htmlFor="company">Entreprise <span className="text-destructive">*</span></Label>
             <Input
@@ -97,7 +86,6 @@ export function CreateRecruitmentDialog({ children, onCreated }: CreateRecruitme
             />
           </div>
 
-          {/* Type de contrat + Lieu */}
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>Type de contrat <span className="text-destructive">*</span></Label>
@@ -126,7 +114,6 @@ export function CreateRecruitmentDialog({ children, onCreated }: CreateRecruitme
             </div>
           </div>
 
-          {/* Description */}
           <div className="grid gap-1.5">
             <Label htmlFor="description">Description du poste</Label>
             <Textarea
@@ -138,7 +125,6 @@ export function CreateRecruitmentDialog({ children, onCreated }: CreateRecruitme
             />
           </div>
 
-          {/* Exigences */}
           <div className="grid gap-1.5">
             <Label htmlFor="requirements">Exigences & compétences requises</Label>
             <Textarea
@@ -153,7 +139,10 @@ export function CreateRecruitmentDialog({ children, onCreated }: CreateRecruitme
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-          <Button onClick={handleSubmit} disabled={!form.title || !form.company || !form.contractType}>
+          <Button
+            onClick={handleSubmit}
+            disabled={!form.title || !form.company || !form.contractType}
+          >
             Créer l'offre
           </Button>
         </DialogFooter>

@@ -65,6 +65,7 @@ export function AppSidebar({ activeView, onNavigate, ...props }: AppSidebarProps
           </SidebarMenuItem>
 
           {/* Candidats */}
+          {/* 
           <SidebarMenuItem>
             <SidebarMenuButton
               isActive={activeView === 'candidates'}
@@ -74,7 +75,7 @@ export function AppSidebar({ activeView, onNavigate, ...props }: AppSidebarProps
               <IconUsers className="size-4" />
               <span>Candidats</span>
             </SidebarMenuButton>
-          </SidebarMenuItem>
+          </SidebarMenuItem> */}
 
           {/* Recrutements */}
           <SidebarMenuItem>
